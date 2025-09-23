@@ -115,3 +115,77 @@ class DS_Simple_Text_Widget extends WP_Widget {
 add_action( 'widgets_init', function() {
   register_widget( 'DS_Simple_Text_Widget' );
 } );
+
+
+
+
+function mytheme_pagination(
+  $query = null, $args = array()) {
+
+  if ($query instanceof WP_Query){
+     $q = $query;
+  } else {
+     global $wp_query; 
+     $q = $wp_query;
+  }
+
+  if (empty($q->max_num_pages) || $q->max_num_pages < 2 ) {
+    return;
+  }
+
+  // Example pagination output
+  echo '<nav class="pagination">';
+  echo paginate_links(array(
+    'total' => $q->max_num_pages,
+    'current' => max(1, get_query_var('paged')),
+    'prev_text' => __('« Prev', 'your-textdomain'),
+    'next_text' => __('Next »', 'your-textdomain'),
+  ));
+  echo '</nav>';
+}
+
+mytheme_pagination();
+?>
+
+<style>
+/* Modern pagination styles */
+nav.pagination {
+  margin: 30px 0;
+  text-align: center;
+}
+
+nav.pagination .page-numbers {
+  display: inline-block;
+  margin: 0 4px;
+  padding: 8px 16px;
+  background: #f8f9fa;
+  color: #007bff;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+
+nav.pagination .page-numbers:hover,
+nav.pagination .page-numbers:focus {
+  background: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
+nav.pagination .page-numbers.current {
+  background: #007bff;
+  color: #fff;
+  border-color: #007bff;
+  cursor: default;
+}
+
+nav.pagination .page-numbers.dots {
+  background: transparent;
+  color: #6c757d;
+  border: none;
+  cursor: default;
+}
+</style>
+

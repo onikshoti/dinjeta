@@ -22,7 +22,9 @@
         </article>
       <?php endwhile; ?>
       </div>
-      <div class="my-4"><?php the_posts_pagination(); ?></div>
+      <div class="my-4">
+        <?php mytheme_pagination(); ?>
+      </div>
     </div>
     <aside class="col-md-4">
       <?php get_sidebar( 'primary' ); ?>
@@ -36,4 +38,3 @@
 
 
 <?php get_footer(); ?>
-
