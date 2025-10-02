@@ -1,6 +1,14 @@
 <?php get_header(); ?>
 
 
+<?php
+// Show movies tab at the very top of the main page
+if (function_exists('ds_movies_tab_shortcode')) {
+    echo do_shortcode('[ds_movies_tab]');
+}
+?>
+
+
 <!-- Movie Search Form -->
 <form method="get" class="mb-4" action="<?php echo esc_url( home_url( '/' ) ); ?>">
   <div class="input-group">
@@ -73,6 +81,11 @@ if ($movies_query->have_posts()) : ?>
   <p><?php _e('No posts found.', 'your-textdomain'); ?></p>
 <?php endif; ?>
 
+<div class="container">
+  <h1><?php the_field('title') ?></h1>
+    <p><?php the_field('description') ?></p>
+</div>
+
 <!-- Demo boxes, outside the loop and after main content -->
 <div class="box-rounded">This box has rounded corners.</div>
 <div class="box-ellipse">Elliptical border radius.</div>
@@ -81,4 +94,29 @@ if ($movies_query->have_posts()) : ?>
 <div class="shadow-box">Box with shadow.</div>
 <div class="inner-shadow">Box with inner shadow.</div>
 
+
+<div class="container">
+
+
+  <h1><?php the_field('title') ?></h1>
+    <p><?php the_field('description') ?></p>
+
+
+  <?php
+ 
+  if (function_exists('get_field_objects')) {
+    $fields = get_field_objects();
+    if ($fields) {
+      echo '<div class="acf-fields-group">';
+      foreach ($fields as $field) {
+        echo '<div class="acf-field acf-field-' . esc_attr($field['name']) . '">';
+        echo '<strong>' . esc_html($field['label']) . ':</strong> ';
+        echo esc_html($field['value']);
+        echo '</div>';
+      }
+      echo '</div>';
+    }
+  }
+  ?>
+</div>
 <?php get_footer(); ?>

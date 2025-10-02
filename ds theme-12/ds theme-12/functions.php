@@ -208,9 +208,7 @@ function register_texonomy_movie_genres() {
 // Front-end Add Movie Tab (for logged-in users)
 function ds_add_movie_tab() {
   if (!is_user_logged_in()) return;
-  // Get genres for dropdown
-  $genres = get_terms(['taxonomy' => 'movie_genre', 'hide_empty' => false]);
-?>
+  ?>
   <div class="mb-4">
     <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#addMovieForm" aria-expanded="false" aria-controls="addMovieForm">
       Add Movie
@@ -225,14 +223,6 @@ function ds_add_movie_tab() {
         </div>
         <div class="mb-2">
           <input type="number" name="ds_movie_year" class="form-control" placeholder="Year" min="1900" max="<?php echo date('Y'); ?>" required>
-        </div>
-        <div class="mb-2">
-          <select name="ds_movie_genre" class="form-select" required>
-            <option value="">Select Genre</option>
-            <?php foreach ($genres as $genre): ?>
-              <option value="<?php echo esc_attr($genre->term_id); ?>"><?php echo esc_html($genre->name); ?></option>
-            <?php endforeach; ?>
-          </select>
         </div>
         <div class="mb-2">
           <input type="number" name="ds_movie_price" class="form-control" placeholder="Price" step="0.01" min="0" required>
@@ -257,14 +247,12 @@ function ds_add_movie_tab() {
     $title = sanitize_text_field($_POST['ds_movie_title']);
     $desc = sanitize_textarea_field($_POST['ds_movie_desc']);
     $year = intval($_POST['ds_movie_year']);
-    $genre_id = intval($_POST['ds_movie_genre']);
     $price = floatval($_POST['ds_movie_price']);
     $currency = sanitize_text_field($_POST['ds_movie_currency']);
     $errors = [];
     if (!$title) $errors[] = 'Title is required.';
     if (!$desc) $errors[] = 'Description is required.';
     if ($year < 1900 || $year > intval(date('Y'))) $errors[] = 'Year is invalid.';
-    if (!$genre_id) $errors[] = 'Genre is required.';
     if ($price < 0) $errors[] = 'Price must be positive.';
     if (!$currency) $errors[] = 'Currency is required.';
     if ($errors) {
@@ -282,8 +270,6 @@ function ds_add_movie_tab() {
         update_post_meta($movie_id, 'ds_movie_price', $price);
         update_post_meta($movie_id, 'ds_movie_currency', $currency);
         update_post_meta($movie_id, 'ds_movie_year', $year);
-        // Assign genre
-        wp_set_object_terms($movie_id, [$genre_id], 'movie_genre');
         // Handle image upload
         if (!empty($_FILES['ds_movie_image']['name'])) {
           require_once(ABSPATH . 'wp-admin/includes/image.php');
@@ -294,50 +280,36 @@ function ds_add_movie_tab() {
             set_post_thumbnail($movie_id, $attachment_id);
           }
         }
-        $genre_obj = get_term($genre_id);
         echo '<div class="alert alert-success mt-2">Movie added!<br>';
         echo '<strong>Title:</strong> ' . esc_html($title) . '<br>';
         echo '<strong>Year:</strong> ' . esc_html($year) . '<br>';
-        echo '<strong>Genre:</strong> ' . esc_html($genre_obj ? $genre_obj->name : '') . '<br>';
         echo '<strong>Price:</strong> ' . esc_html($price) . ' ' . esc_html($currency) . '</div>';
       }
     }
   }
 }
-add_action('wp_head', 'ds_add_movie_tab');
 
-// Movies Tab: grid + add form
 function ds_movies_tab() {
   echo '<div class="ds-movies-tab">';
-  echo '<h2 class="mb-4">Movies</h2>';
-  // Add Movie Form
-  ds_add_movie_tab();
-  // Genre Tabs
-  $genres = get_terms(['taxonomy' => 'movie_genre', 'hide_empty' => false]);
-  $active_genre = isset($_GET['ds_genre']) ? intval($_GET['ds_genre']) : 0;
-  echo '<ul class="nav nav-tabs mb-4">';
-  echo '<li class="nav-item"><a class="nav-link' . ($active_genre ? '' : ' active') . '" href="' . esc_url(add_query_arg('ds_genre', 0)) . '">All</a></li>';
-  foreach ($genres as $genre) {
-    $active = ($active_genre === $genre->term_id) ? ' active' : '';
-    echo '<li class="nav-item"><a class="nav-link' . $active . '" href="' . esc_url(add_query_arg('ds_genre', $genre->term_id)) . '">' . esc_html($genre->name) . '</a></li>';
-  }
+  echo '<ul class="nav nav-tabs mb-4" id="dsMoviesTab" role="tablist">';
+  echo '<li class="nav-item" role="presentation">'
+    . '<button class="nav-link active" id="movies-list-tab" data-bs-toggle="tab" data-bs-target="#movies-list" type="button" role="tab" aria-controls="movies-list" aria-selected="true">Movies List</button>'
+    . '</li>';
+  echo '<li class="nav-item" role="presentation">'
+    . '<button class="nav-link" id="add-movie-tab" data-bs-toggle="tab" data-bs-target="#add-movie" type="button" role="tab" aria-controls="add-movie" aria-selected="false">Add Movie</button>'
+    . '</li>';
   echo '</ul>';
-  // Movies Grid (filtered by genre)
+
+  echo '<div class="tab-content" id="dsMoviesTabContent">';
+  // Movies List Tab
+  echo '<div class="tab-pane fade show active" id="movies-list" role="tabpanel" aria-labelledby="movies-list-tab">';
+  echo '<h2 class="mb-4">Movies</h2>';
   $movies_args = [
     'post_type' => 'movies',
     'posts_per_page' => -1,
     'orderby' => 'date',
     'order' => 'DESC',
   ];
-  if ($active_genre) {
-    $movies_args['tax_query'] = [
-      [
-        'taxonomy' => 'movie_genre',
-        'field' => 'term_id',
-        'terms' => $active_genre,
-      ]
-    ];
-  }
   $movies_query = new WP_Query($movies_args);
   if ($movies_query->have_posts()) {
     echo '<div class="row g-4 mb-5">';
@@ -346,7 +318,6 @@ function ds_movies_tab() {
       $year = get_post_meta(get_the_ID(), 'ds_movie_year', true);
       $price = get_post_meta(get_the_ID(), 'ds_movie_price', true);
       $currency = get_post_meta(get_the_ID(), 'ds_movie_currency', true);
-      $genres = wp_get_post_terms(get_the_ID(), 'movie_genre');
       echo '<div class="col-6 col-md-4 col-lg-3">';
       echo '<div class="card h-100">';
       if (has_post_thumbnail()) {
@@ -355,10 +326,6 @@ function ds_movies_tab() {
       echo '<div class="card-body">';
       echo '<h5 class="card-title"><a href="' . get_permalink() . '">' . get_the_title() . '</a></h5>';
       if ($year) echo '<div><strong>Year:</strong> ' . esc_html($year) . '</div>';
-      if ($genres) {
-        $genre_names = array_map(function($g){return esc_html($g->name);}, $genres);
-        echo '<div><strong>Genre:</strong> ' . implode(', ', $genre_names) . '</div>';
-      }
       if ($price) echo '<div><strong>Price:</strong> ' . esc_html($price) . ' ' . esc_html($currency) . '</div>';
       // Delete button for logged-in users
       if (is_user_logged_in()) {
@@ -376,7 +343,23 @@ function ds_movies_tab() {
     echo '<p>No movies found.</p>';
   }
   echo '</div>';
+
+  // Add Movie Tab
+  echo '<div class="tab-pane fade" id="add-movie" role="tabpanel" aria-labelledby="add-movie-tab">';
+  ds_add_movie_tab();
+  echo '</div>';
+
+  echo '</div>';
+  echo '</div>';
 }
+
+// Shortcode to display movies tab
+function ds_movies_tab_shortcode() {
+    ob_start();
+    ds_movies_tab();
+    return ob_get_clean();
+}
+add_shortcode('ds_movies_tab', 'ds_movies_tab_shortcode');
 
 // Handle movie deletion
   if (is_user_logged_in() && isset($_POST['ds_delete_movie_id'], $_POST['ds_delete_movie_nonce'])) {
