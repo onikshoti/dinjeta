@@ -1,0 +1,95 @@
+/*
+Theme Name: Modern Electronics Store
+Theme URI:  https://example.com/modern-electronics-store
+Author:      Your Name
+Description: Modern responsive electronics store theme
+Version:     1.0.0
+Text Domain: modern-electronics-store
+*/
+
+/* Import main CSS (optional quick fix) */
+@import url("public/css/style.css");
+
+/* Fallback basic styles if needed */
+body{margin:0;font-family:Arial,Helvetica,sans-serif}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+header {
+    background: #35424a;
+    color: #ffffff;
+    padding: 10px 0;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
+.product-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.product-item {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 5px;
+    margin: 10px;
+    padding: 15px;
+    flex: 1 1 calc(30% - 20px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.product-item h2 {
+    font-size: 1.5em;
+    margin: 0 0 10px;
+}
+
+.product-item p {
+    margin: 0 0 15px;
+}
+
+button {
+    background: #35424a;
+    color: #ffffff;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background: #2c3e50;
+}
+
+form {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+form input, form select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #dddddd;
+    border-radius: 5px;
+}
+
+form button {
+    width: 100%;
+}
